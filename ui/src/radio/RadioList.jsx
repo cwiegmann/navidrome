@@ -14,7 +14,7 @@ import {
   UrlField,
   useTranslate,
 } from 'react-admin'
-import { List } from '../common'
+import { InfiniteScrollWrapper, List } from '../common'
 import { ToggleFieldsMenu, useSelectedFields } from '../common'
 import { StreamField } from './StreamField'
 import { setTrack } from '../actions'
@@ -113,30 +113,34 @@ const RadioList = ({ permissions, ...props }) => {
       hasCreate={isAdmin}
       actions={<RadioListActions isAdmin={isAdmin} />}
       filters={<RadioFilter />}
-      perPage={isXsmall ? 25 : 10}
+      perPage={25}
+      pagination={false}
+      syncWithLocation={false}
     >
-      {isXsmall ? (
-        <SimpleList
-          leftIcon={(r) => (
-            <StreamField
-              record={r}
-              source={'streamUrl'}
-              hideUrl
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-              }}
-            />
-          )}
-          primaryText={(r) => r.name}
-          secondaryText={(r) => r.homePageUrl}
-        />
-      ) : (
-        <Datagrid rowClick={handleRowClick} classes={{ row: classes.row }}>
-          {columns}
-          {isAdmin && <EditButton />}
-        </Datagrid>
-      )}
+      <InfiniteScrollWrapper>
+        {isXsmall ? (
+          <SimpleList
+            leftIcon={(r) => (
+              <StreamField
+                record={r}
+                source={'streamUrl'}
+                hideUrl
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                }}
+              />
+            )}
+            primaryText={(r) => r.name}
+            secondaryText={(r) => r.homePageUrl}
+          />
+        ) : (
+          <Datagrid rowClick={handleRowClick} classes={{ row: classes.row }}>
+            {columns}
+            {isAdmin && <EditButton />}
+          </Datagrid>
+        )}
+      </InfiniteScrollWrapper>
     </List>
   )
 }

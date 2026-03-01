@@ -1,3 +1,5 @@
+import { isTrackPlayable } from '../utils/playableFormats'
+
 export const PLAYER_ADD_TRACKS = 'PLAYER_ADD_TRACKS'
 export const PLAYER_PLAY_NEXT = 'PLAYER_PLAY_NEXT'
 export const PLAYER_SET_TRACK = 'PLAYER_SET_TRACK'
@@ -16,7 +18,9 @@ export const setTrack = (data) => ({
 
 export const filterSongs = (data, ids) => {
   const filteredData = Object.fromEntries(
-    Object.entries(data).filter(([_, song]) => !song.missing),
+    Object.entries(data).filter(
+      ([_, song]) => !song.missing && isTrackPlayable(song),
+    ),
   )
   return !ids
     ? filteredData

@@ -10,6 +10,9 @@ export default {
     secondary: blue,
     type: 'dark',
   },
+  shape: {
+    borderRadius: 6,
+  },
   overrides: {
     MuiFormGroup: {
       root: {

@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import { Redirect, useLocation } from 'react-router-dom'
 import {
@@ -6,18 +7,17 @@ import {
   Filter,
   NullableBooleanInput,
   NumberInput,
-  Pagination,
   ReferenceArrayInput,
   ReferenceInput,
   SearchInput,
   usePermissions,
-  useRefresh,
   useTranslate,
   useVersion,
 } from 'react-admin'
 import FavoriteIcon from '@material-ui/icons/Favorite'
 import { withWidth } from '@material-ui/core'
 import {
+  InfiniteScrollWrapper,
   List,
   QuickFilter,
   Title,
@@ -179,10 +179,9 @@ const randomStartingSeed = Math.random().toString()
 const AlbumList = (props) => {
   const { width } = props
   const albumView = useSelector((state) => state.albumView)
-  const [perPage, perPageOptions] = useAlbumsPerPage(width)
+  const [perPage] = useAlbumsPerPage(width)
   const location = useLocation()
   const version = useVersion()
-  const refresh = useRefresh()
   useResourceRefresh('album')
 
   const seed = `${randomStartingSeed}-${version}`
@@ -210,15 +209,29 @@ const AlbumList = (props) => {
     ['createdAt', 'size'],
   )
 
+  // Parse sort/filter from URL so they apply even with syncWithLocation=false
+  const urlParams = useMemo(() => {
+    const sp = new URLSearchParams(location.search)
+    const sortField = sp.get('sort') || 'name'
+    const sortOrder = sp.get('order') || 'ASC'
+    let filterObj = {}
+    try {
+      filterObj = JSON.parse(sp.get('filter') || '{}')
+    } catch (e) {
+      // ignore malformed filter
+    }
+    return {
+      sort: { field: sortField, order: sortOrder },
+      filter: filterObj,
+    }
+  }, [location.search])
+
   // If it does not have filter/sort params (usually coming from Menu),
   // reload with correct filter/sort params
   if (!location.search) {
     const type =
       albumListType || localStorage.getItem('defaultView') || defaultAlbumList
     const listParams = albumLists[type]
-    if (type === 'random') {
-      refresh()
-    }
     if (listParams) {
       return <Redirect to={`/album/${type}?${listParams.params}`} />
     }
@@ -227,21 +240,26 @@ const AlbumList = (props) => {
   return (
     <>
       <List
+        key={albumListType}
         {...props}
         exporter={false}
         bulkActionButtons={false}
-        filter={{ seed }}
+        sort={urlParams.sort}
+        filter={{ seed, ...urlParams.filter }}
         actions={<AlbumListActions />}
         filters={<AlbumFilter />}
         perPage={perPage}
-        pagination={<Pagination rowsPerPageOptions={perPageOptions} />}
+        pagination={false}
+        syncWithLocation={false}
         title={<AlbumListTitle albumListType={albumListType} />}
       >
-        {albumView.grid ? (
-          <AlbumGridView albumListType={albumListType} {...props} />
-        ) : (
-          <AlbumTableView {...props} />
-        )}
+        <InfiniteScrollWrapper>
+          {albumView.grid ? (
+            <AlbumGridView albumListType={albumListType} {...props} />
+          ) : (
+            <AlbumTableView {...props} />
+          )}
+        </InfiniteScrollWrapper>
       </List>
       <ExpandInfoDialog content={<AlbumInfo />} />
     </>

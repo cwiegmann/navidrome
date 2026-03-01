@@ -50,11 +50,18 @@ const NavigationButtons = () => {
       const stack = stackRef.current
       const idx = indexRef.current
 
-      const truncated = stack.slice(0, idx + 1)
+      const MAX_STACK = 100
+      let truncated = stack.slice(0, idx + 1)
       truncated.push(newPath)
 
+      if (truncated.length > MAX_STACK) {
+        const overflow = truncated.length - MAX_STACK
+        truncated = truncated.slice(overflow)
+        indexRef.current = truncated.length - 1
+      } else {
+        indexRef.current = truncated.length - 1
+      }
       stackRef.current = truncated
-      indexRef.current = truncated.length - 1
       updateButtons()
     })
 

@@ -20,6 +20,7 @@ import {
 import Lightbox from 'react-image-lightbox'
 import 'react-image-lightbox/style.css'
 import subsonic from '../subsonic'
+import { extractDominantColor, colorToGradient } from '../utils/colorExtractor'
 import {
   ArtistLinkField,
   CollapsibleComment,
@@ -86,6 +87,7 @@ const useStyles = makeStyles(
       height: '100%',
       backgroundColor: 'transparent',
       transition: 'opacity 0.3s ease-in-out',
+      borderRadius: 6,
     },
     coverLoading: {
       opacity: 0.5,
@@ -225,6 +227,7 @@ const AlbumDetails = (props) => {
   const [albumInfo, setAlbumInfo] = useState()
   const [imageLoading, setImageLoading] = useState(false)
   const [imageError, setImageError] = useState(false)
+  const [bgGradient, setBgGradient] = useState('none')
 
   let notes = albumInfo?.notes || record.notes
 
@@ -245,7 +248,7 @@ const AlbumDetails = (props) => {
         // eslint-disable-next-line no-console
         console.error('error on album page', e)
       })
-  }, [record])
+  }, [record.id])
 
   // Reset image state when album changes
   useEffect(() => {
@@ -255,6 +258,16 @@ const AlbumDetails = (props) => {
 
   const imageUrl = subsonic.getCoverArtUrl(record, 300)
   const fullImageUrl = subsonic.getCoverArtUrl(record)
+
+  useEffect(() => {
+    if (imageUrl) {
+      extractDominantColor(imageUrl)
+        .then((color) => {
+          setBgGradient(colorToGradient(color, 0.25))
+        })
+        .catch(() => {})
+    }
+  }, [imageUrl])
 
   const handleImageLoad = useCallback(() => {
     setImageLoading(false)
@@ -275,7 +288,7 @@ const AlbumDetails = (props) => {
   const handleCloseLightbox = useCallback(() => setLightboxOpen(false), [])
 
   return (
-    <Card className={classes.root}>
+    <Card className={classes.root} style={{ background: bgGradient }}>
       <div className={classes.cardContents}>
         <div className={classes.coverParent}>
           <CardMedia

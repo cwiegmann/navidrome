@@ -22,6 +22,7 @@ import { useDrag } from 'react-dnd'
 import clsx from 'clsx'
 import {
   ArtistContextMenu,
+  InfiniteScrollWrapper,
   List,
   QuickFilter,
   useGetHandleArtistClick,
@@ -212,8 +213,13 @@ const ArtistList = (props) => {
         filters={<ArtistFilter />}
         filterDefaultValues={{ role: 'albumartist' }}
         actions={<ArtistListActions />}
+        perPage={50}
+        pagination={false}
+        syncWithLocation={false}
       >
-        <ArtistListView {...props} />
+        <InfiniteScrollWrapper>
+          <ArtistListView {...props} />
+        </InfiniteScrollWrapper>
       </List>
     </>
   )

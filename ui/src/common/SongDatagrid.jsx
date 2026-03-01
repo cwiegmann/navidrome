@@ -1,4 +1,4 @@
-import React, { isValidElement, useMemo, useCallback, forwardRef } from 'react'
+import React, { isValidElement, useMemo, useCallback, useRef, useEffect, forwardRef } from 'react'
 import { useDispatch } from 'react-redux'
 import {
   Datagrid,
@@ -21,6 +21,7 @@ import { playTracks } from '../actions'
 import { AlbumContextMenu } from '../common'
 import { DraggableTypes } from '../consts'
 import { formatFullDate } from '../utils'
+import { isTrackPlayable } from '../utils/playableFormats'
 
 const useStyles = makeStyles({
   subtitle: {
@@ -44,6 +45,11 @@ const useStyles = makeStyles({
   missingRow: {
     cursor: 'inherit',
     opacity: 0.3,
+  },
+  unplayableRow: {
+    cursor: 'inherit',
+    opacity: 0.35,
+    filter: 'grayscale(80%)',
   },
   headerStyle: {
     '& thead': {
@@ -112,10 +118,12 @@ export const SongDatagridRow = ({
   firstTracksOfDiscs,
   contextAlwaysVisible,
   onClickSubset,
+  onRowDoubleClick,
   className,
   ...rest
 }) => {
   const classes = useStyles()
+  const nodeRef = useRef(null)
   const fields = React.Children.toArray(children).filter((c) =>
     isValidElement(c),
   )
@@ -145,16 +153,39 @@ export const SongDatagridRow = ({
     [record],
   )
 
+  const combinedRef = useCallback(
+    (node) => {
+      dragSongRef(node)
+      nodeRef.current = node
+    },
+    [dragSongRef],
+  )
+
+  useEffect(() => {
+    const node = nodeRef.current
+    if (!node || !onRowDoubleClick || !record || record.missing || !isTrackPlayable(record)) {
+      return
+    }
+    const handler = (e) => {
+      e.stopPropagation()
+      onRowDoubleClick(record.id, record)
+    }
+    node.addEventListener('dblclick', handler)
+    return () => node.removeEventListener('dblclick', handler)
+  }, [record, onRowDoubleClick])
+
   if (!record || !record.title) {
     return null
   }
 
-  const rowClick = record.missing ? undefined : rest.rowClick
+  const playable = isTrackPlayable(record)
+  const rowClick = record.missing || !playable ? undefined : rest.rowClick
 
   const computedClasses = clsx(
     className,
     classes.row,
     record.missing && classes.missingRow,
+    !record.missing && !playable && classes.unplayableRow,
   )
   const childCount = fields.length
   return (
@@ -169,7 +200,7 @@ export const SongDatagridRow = ({
         />
       )}
       <PureDatagridRow
-        ref={dragSongRef}
+        ref={combinedRef}
         record={record}
         {...rest}
         rowClick={rowClick}
@@ -187,6 +218,7 @@ SongDatagridRow.propTypes = {
   firstTracksOfDiscs: PropTypes.instanceOf(Set),
   contextAlwaysVisible: PropTypes.bool,
   onClickSubset: PropTypes.func,
+  onRowDoubleClick: PropTypes.func,
 }
 
 SongDatagridRow.defaultProps = {
@@ -196,6 +228,7 @@ SongDatagridRow.defaultProps = {
 const SongDatagridBody = ({
   contextAlwaysVisible,
   showDiscSubtitles,
+  onRowDoubleClick,
   ...rest
 }) => {
   const dispatch = useDispatch()
@@ -210,7 +243,9 @@ const SongDatagridBody = ({
       dispatch(
         playTracks(
           data,
-          idsToPlay?.filter((id) => !data[id].missing),
+          idsToPlay?.filter(
+            (id) => !data[id].missing && isTrackPlayable(data[id]),
+          ),
         ),
       )
     },
@@ -251,6 +286,7 @@ const SongDatagridBody = ({
           firstTracksOfDiscs={firstTracksOfDiscs}
           contextAlwaysVisible={contextAlwaysVisible}
           onClickSubset={playSubset}
+          onRowDoubleClick={onRowDoubleClick}
         />
       }
     />
@@ -260,18 +296,20 @@ const SongDatagridBody = ({
 export const SongDatagrid = ({
   contextAlwaysVisible,
   showDiscSubtitles,
+  onRowDoubleClick,
   ...rest
 }) => {
   const classes = useStyles()
   return (
     <Datagrid
       className={classes.headerStyle}
-      isRowSelectable={(r) => !r?.missing}
+      isRowSelectable={(r) => !r?.missing && isTrackPlayable(r)}
       {...rest}
       body={
         <SongDatagridBody
           contextAlwaysVisible={contextAlwaysVisible}
           showDiscSubtitles={showDiscSubtitles}
+          onRowDoubleClick={onRowDoubleClick}
         />
       }
     />

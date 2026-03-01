@@ -1,11 +1,11 @@
 import { useSelector } from 'react-redux'
 
 const getPerPage = (width) => {
-  if (width === 'xs') return 12
-  if (width === 'sm') return 12
-  if (width === 'md') return 12
-  if (width === 'lg') return 18
-  return 36
+  if (width === 'xs') return 24
+  if (width === 'sm') return 24
+  if (width === 'md') return 48
+  if (width === 'lg') return 72
+  return 108
 }
 
 const getPerPageOptions = (width) => {

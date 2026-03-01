@@ -223,7 +223,8 @@ const PlaylistSongs = ({ playlistId, readOnly, actions, ...props }) => {
             nodeSelector={'tr'}
           >
             <SongDatagrid
-              rowClick={(id) => dispatch(playTracks(data, ids, id))}
+              rowClick="toggleSelection"
+              onRowDoubleClick={(id) => dispatch(playTracks(data, ids, id))}
               {...listContext}
               hasBulkActions={!readOnly}
               contextAlwaysVisible={!isDesktop}

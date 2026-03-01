@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useCallback } from 'react'
 import {
   AutocompleteArrayInput,
   Filter,
@@ -16,6 +16,7 @@ import FavoriteIcon from '@material-ui/icons/Favorite'
 import {
   DateField,
   DurationField,
+  InfiniteScrollWrapper,
   List,
   SongContextMenu,
   SongDatagrid,
@@ -137,9 +138,12 @@ const SongList = (props) => {
   const isDesktop = useMediaQuery((theme) => theme.breakpoints.up('md'))
   useResourceRefresh('song')
 
-  const handleRowClick = (id, basePath, record) => {
-    dispatch(setTrack(record))
-  }
+  const handleRowDoubleClick = useCallback(
+    (id, record) => {
+      dispatch(setTrack(record))
+    },
+    [dispatch],
+  )
 
   const toggleableFields = useMemo(() => {
     return {
@@ -215,34 +219,39 @@ const SongList = (props) => {
         bulkActionButtons={<SongBulkActions />}
         actions={<SongListActions />}
         filters={<SongFilter />}
-        perPage={isXsmall ? 50 : 15}
+        perPage={50}
+        pagination={false}
+        syncWithLocation={false}
       >
-        {isXsmall ? (
-          <SongSimpleList />
-        ) : (
-          <SongDatagrid
-            rowClick={handleRowClick}
-            contextAlwaysVisible={!isDesktop}
-            classes={{ row: classes.row }}
-          >
-            <SongTitleField source="title" showTrackNumbers={false} />
-            {columns}
-            <SongContextMenu
-              source={'starred_at'}
-              sortByOrder={'DESC'}
-              sortable={config.enableFavourites}
-              className={classes.contextMenu}
-              label={
-                config.enableFavourites && (
-                  <FavoriteBorderIcon
-                    fontSize={'small'}
-                    className={classes.contextHeader}
-                  />
-                )
-              }
-            />
-          </SongDatagrid>
-        )}
+        <InfiniteScrollWrapper>
+          {isXsmall ? (
+            <SongSimpleList />
+          ) : (
+            <SongDatagrid
+              rowClick="toggleSelection"
+              onRowDoubleClick={handleRowDoubleClick}
+              contextAlwaysVisible={!isDesktop}
+              classes={{ row: classes.row }}
+            >
+              <SongTitleField source="title" showTrackNumbers={false} />
+              {columns}
+              <SongContextMenu
+                source={'starred_at'}
+                sortByOrder={'DESC'}
+                sortable={config.enableFavourites}
+                className={classes.contextMenu}
+                label={
+                  config.enableFavourites && (
+                    <FavoriteBorderIcon
+                      fontSize={'small'}
+                      className={classes.contextHeader}
+                    />
+                  )
+                }
+              />
+            </SongDatagrid>
+          )}
+        </InfiniteScrollWrapper>
       </List>
       <ExpandInfoDialog content={<SongInfo />} />
     </>

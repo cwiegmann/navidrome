@@ -185,7 +185,8 @@ const AlbumSongs = (props) => {
             <SongBulkActions />
           </BulkActionsToolbar>
           <SongDatagrid
-            rowClick={(id) => dispatch(playTracks(data, ids, id))}
+            rowClick="toggleSelection"
+            onRowDoubleClick={(id) => dispatch(playTracks(data, ids, id))}
             {...props}
             hasBulkActions={true}
             showDiscSubtitles={true}

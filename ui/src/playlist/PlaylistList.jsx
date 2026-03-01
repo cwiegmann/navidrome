@@ -20,6 +20,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { useMediaQuery } from '@material-ui/core'
 import {
   DurationField,
+  InfiniteScrollWrapper,
   List,
   Writable,
   isWritable,
@@ -174,14 +175,22 @@ const PlaylistList = (props) => {
       filters={<PlaylistFilter />}
       actions={<PlaylistListActions />}
       bulkActionButtons={!isXsmall && <PlaylistListBulkActions />}
+      perPage={50}
+      pagination={false}
+      syncWithLocation={false}
     >
-      <Datagrid rowClick="show" isRowSelectable={(r) => isWritable(r?.ownerId)}>
-        <TextField source="name" />
-        {columns}
-        <Writable>
-          <EditButton />
-        </Writable>
-      </Datagrid>
+      <InfiniteScrollWrapper>
+        <Datagrid
+          rowClick="show"
+          isRowSelectable={(r) => isWritable(r?.ownerId)}
+        >
+          <TextField source="name" />
+          {columns}
+          <Writable>
+            <EditButton />
+          </Writable>
+        </Datagrid>
+      </InfiniteScrollWrapper>
     </List>
   )
 }

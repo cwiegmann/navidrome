@@ -25,7 +25,9 @@ import {
 } from '../actions'
 import PlayerToolbar from './PlayerToolbar'
 import QueuePanel from './QueuePanel'
+import NowPlayingView from './NowPlayingView'
 import crossfadeManager from './CrossfadeManager'
+import gaplessPlayer from './GaplessPlayer'
 import { sendNotification } from '../utils'
 import subsonic from '../subsonic'
 import locale from './locale'
@@ -45,6 +47,7 @@ const Player = () => {
   const [preloaded, setPreload] = useState(false)
   const [audioInstance, setAudioInstance] = useState(null)
   const [queuePanelOpen, setQueuePanelOpen] = useState(false)
+  const [nowPlayingOpen, setNowPlayingOpen] = useState(false)
   const isDesktop = useMediaQuery('(min-width:810px)')
   const isMobilePlayer =
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
@@ -175,14 +178,21 @@ const Player = () => {
 
   const nextSong = useCallback(() => {
     const idx = playerState.queue.findIndex(
-      (item) => item.uuid === playerState.current.uuid,
+      (item) => item.uuid === playerState.current?.uuid,
     )
-    return idx !== null ? playerState.queue[idx + 1] : null
+    return idx >= 0 ? playerState.queue[idx + 1] : null
   }, [playerState])
 
   useEffect(() => {
     crossfadeManager.setDuration(playerState.crossfadeDuration || 0)
   }, [playerState.crossfadeDuration])
+
+  useEffect(() => {
+    if (context && gainNode) {
+      gaplessPlayer.enable(context, gainNode)
+    }
+    return () => gaplessPlayer.disable()
+  }, [context, gainNode])
 
   const onAudioProgress = useCallback(
     (info) => {
@@ -202,8 +212,13 @@ const Player = () => {
       if (!preloaded) {
         const next = nextSong()
         if (next != null) {
-          const audio = new Audio()
-          audio.src = next.musicSrc
+          if (gaplessPlayer.isEnabled()) {
+            gaplessPlayer.prepareNext(next.musicSrc)
+          } else {
+            const audio = new Audio()
+            audio.preload = 'auto'
+            audio.src = next.musicSrc
+          }
         }
         setPreload(true)
         return
@@ -274,6 +289,7 @@ const Player = () => {
 
   const onAudioPlayTrackChange = useCallback(() => {
     crossfadeManager.resetForNewTrack(gainNode, context)
+    gaplessPlayer.resetForNewTrack()
     if (scrobbled) {
       setScrobbled(false)
     }
@@ -300,9 +316,9 @@ const Player = () => {
     [dispatch, dataProvider],
   )
 
-  const onCoverClick = useCallback((mode, audioLists, audioInfo) => {
-    if (mode === 'full' && audioInfo?.song?.albumId) {
-      window.location.href = `#/album/${audioInfo.song.albumId}/show`
+  const onCoverClick = useCallback((mode) => {
+    if (mode === 'full') {
+      setNowPlayingOpen(true)
     }
   }, [])
 
@@ -313,9 +329,11 @@ const Player = () => {
     })
   }, [dispatch])
 
-  if (!visible) {
-    document.title = 'Navidrome'
-  }
+  useEffect(() => {
+    if (!visible) {
+      document.title = 'Navidrome'
+    }
+  }, [visible])
 
   const handlers = useMemo(
     () => keyHandlers(audioInstance, playerState),
@@ -348,6 +366,11 @@ const Player = () => {
       <QueuePanel
         open={queuePanelOpen}
         onClose={() => setQueuePanelOpen(false)}
+      />
+      <NowPlayingView
+        open={nowPlayingOpen}
+        onClose={() => setNowPlayingOpen(false)}
+        onToggleQueue={() => setQueuePanelOpen((prev) => !prev)}
       />
       <GlobalHotKeys handlers={handlers} keyMap={keyMap} allowChanges />
     </ThemeProvider>

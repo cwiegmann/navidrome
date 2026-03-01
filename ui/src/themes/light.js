@@ -10,6 +10,9 @@ export default {
       contrastText: '#fff',
     },
   },
+  shape: {
+    borderRadius: 6,
+  },
   overrides: {
     MuiFilledInput: {
       root: {
