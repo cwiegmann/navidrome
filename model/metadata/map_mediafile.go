@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/navidrome/navidrome/conf"
+	"github.com/navidrome/navidrome/consts"
 	"github.com/navidrome/navidrome/log"
 	"github.com/navidrome/navidrome/model"
 	"github.com/navidrome/navidrome/utils/str"
@@ -31,6 +32,11 @@ func (md Metadata) ToMediaFile(libID int, folderID string) model.MediaFile {
 
 	// Disc and Track info
 	mf.TrackNumber, _ = md.NumAndTotal(model.TagTrackNumber)
+	if mf.TrackNumber == 0 {
+		if parsed := parseFilenameMetadata(md.FilePath()); parsed != nil && parsed.TrackNum > 0 {
+			mf.TrackNumber = parsed.TrackNum
+		}
+	}
 	mf.DiscNumber, _ = md.NumAndTotal(model.TagDiscNumber)
 	mf.DiscSubtitle = md.String(model.TagDiscSubtitle)
 	mf.CatalogNum = md.String(model.TagCatalogNumber)
@@ -74,6 +80,16 @@ func (md Metadata) ToMediaFile(libID int, folderID string) model.MediaFile {
 	mf.Participants = md.mapParticipants()
 	mf.Artist = md.mapDisplayArtist()
 	mf.AlbumArtist = md.mapDisplayAlbumArtist(mf)
+
+	// Filename-based artist fallback for files without embedded tags
+	if mf.Artist == consts.UnknownArtist {
+		if parsed := parseFilenameMetadata(md.FilePath()); parsed != nil {
+			mf.Artist = parsed.Artist
+			if mf.AlbumArtist == consts.UnknownArtist {
+				mf.AlbumArtist = parsed.Artist
+			}
+		}
+	}
 
 	// Persistent IDs
 	mf.PID = md.trackPID(mf)

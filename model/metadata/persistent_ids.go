@@ -1,7 +1,6 @@
 package metadata
 
 import (
-	"cmp"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -100,12 +99,18 @@ func (md Metadata) mapTrackTitle() string {
 	if title := md.String(model.TagTitle); title != "" {
 		return title
 	}
+	if parsed := parseFilenameMetadata(md.FilePath()); parsed != nil {
+		return parsed.Title
+	}
 	return utils.BaseName(md.FilePath())
 }
 
 func (md Metadata) mapAlbumName() string {
-	return cmp.Or(
-		md.String(model.TagAlbum),
-		consts.UnknownAlbum,
-	)
+	if album := md.String(model.TagAlbum); album != "" {
+		return album
+	}
+	if parsed := parseFilenameMetadata(md.FilePath()); parsed != nil {
+		return parsed.Album
+	}
+	return consts.UnknownAlbum
 }
