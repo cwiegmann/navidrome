@@ -1,8 +1,6 @@
 package metadata
 
 import (
-	"testing"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -46,8 +44,3 @@ var _ = Describe("parseFilenameMetadata", func() {
 		Expect(result).To(BeNil())
 	})
 })
-
-func TestFilenameParser(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Filename Parser Suite")
-}
