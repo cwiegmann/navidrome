@@ -15,10 +15,11 @@ type Interface interface {
 
 // AlbumInfo contains album metadata (no images)
 type AlbumInfo struct {
-	Name        string
-	MBID        string
-	Description string
-	URL         string
+	Name           string
+	MBID           string
+	Description    string
+	URL            string
+	FullTrackCount int
 }
 
 type Artist struct {

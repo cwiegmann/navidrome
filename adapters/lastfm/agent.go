@@ -100,6 +100,7 @@ func (l *lastfmAgent) GetAlbumInfo(ctx context.Context, name, artist, mbid strin
 		resp.Name = a.Name
 		resp.MBID = a.MBID
 		resp.URL = a.URL
+		resp.FullTrackCount = len(a.Tracks.Track)
 		if isValidContent(a.Description.Summary) {
 			resp.Description = cleanContent(a.Description.Summary)
 			return &resp, nil

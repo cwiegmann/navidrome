@@ -125,6 +125,7 @@ var albumFilters = sync.OnceValue(func() map[string]filterFunc {
 		"genre_id":        tagIDFilter,
 		"role_total_id":   allRolesFilter,
 		"library_id":      libraryIdFilter,
+		"full_length":     fullLengthFilter,
 	}
 	// Add all album tags as filters
 	for tag := range model.AlbumLevelTags() {
@@ -147,6 +148,22 @@ func recentlyAddedSort() string {
 
 func recentlyPlayedFilter(string, any) Sqlizer {
 	return Gt{"play_count": 0}
+}
+
+func fullLengthFilter(_ string, value any) Sqlizer {
+	v := strings.ToLower(fmt.Sprint(value))
+	if v != "true" {
+		return Eq{"1": "1"}
+	}
+	return And{
+		Eq{"album.compilation": false},
+		Gt{"album.song_count": 6},
+		GtOrEq{"album.duration": 1200},
+		Or{
+			Eq{"album.mbz_album_type": "Album"},
+			Eq{"album.mbz_album_type": ""},
+		},
+	}
 }
 
 func yearFilter(_ string, value any) Sqlizer {

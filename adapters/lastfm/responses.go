@@ -20,6 +20,20 @@ type Album struct {
 	URL         string          `json:"url"`
 	Image       []ExternalImage `json:"image"`
 	Description Description     `json:"wiki"`
+	Tracks      AlbumTracks     `json:"tracks"`
+}
+
+type AlbumTracks struct {
+	Track []AlbumTrackInfo `json:"track"`
+}
+
+type AlbumTrackInfo struct {
+	Name string         `json:"name"`
+	Rank AlbumTrackRank `json:"@attr"`
+}
+
+type AlbumTrackRank struct {
+	Rank int `json:"rank"`
 }
 
 type Artist struct {
