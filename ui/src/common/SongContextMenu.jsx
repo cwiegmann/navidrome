@@ -12,6 +12,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import MoreVertIcon from '@material-ui/icons/MoreVert'
 import { MdQuestionMark } from 'react-icons/md'
 import clsx from 'clsx'
+import { isTrackPlayable } from '../utils/playableFormats'
 import {
   playNext,
   addTracks,
@@ -197,7 +198,7 @@ export const SongContextMenu = ({
 
   const handleItemClick = (e) => {
     e.preventDefault()
-    const key = e.target.getAttribute('value')
+    const key = e.currentTarget.getAttribute('value')
     const action = options[key].action
 
     if (key === 'showInPlaylist') {
@@ -236,7 +237,7 @@ export const SongContextMenu = ({
     return null
   }
 
-  const present = !record.missing
+  const present = !record.missing && isTrackPlayable(record)
 
   return (
     <span className={clsx(classes.noWrap, className)}>

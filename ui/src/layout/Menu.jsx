@@ -6,6 +6,15 @@ import { useTranslate, MenuItemLink, getResources } from 'react-admin'
 import ViewListIcon from '@material-ui/icons/ViewList'
 import AlbumIcon from '@material-ui/icons/Album'
 import HomeIcon from '@material-ui/icons/Home'
+import PaletteIcon from '@material-ui/icons/Palette'
+import BarChartIcon from '@material-ui/icons/BarChart'
+import AutorenewIcon from '@material-ui/icons/Autorenew'
+import CloudQueueIcon from '@material-ui/icons/CloudQueue'
+import FavoriteIcon from '@material-ui/icons/Favorite'
+import StarIcon from '@material-ui/icons/Star'
+import LibraryAddIcon from '@material-ui/icons/LibraryAdd'
+import VideoLibraryIcon from '@material-ui/icons/VideoLibrary'
+import RepeatIcon from '@material-ui/icons/Repeat'
 import SubMenu from './SubMenu'
 import { humanize, pluralize } from 'inflection'
 import albumLists from '../album/albumLists'
@@ -50,7 +59,7 @@ const translatedResourceName = (resource, translate) =>
 const Menu = ({ dense = false }) => {
   const open = useSelector((state) => state.admin.ui.sidebarOpen)
   const translate = useTranslate()
-  const queue = useSelector((state) => state.player?.queue)
+  const queue = useSelector((state) => state.player?.queue ?? [])
   const classes = useStyles({ addPadding: queue.length > 0 })
   const resources = useSelector(getResources)
 
@@ -134,7 +143,56 @@ const Menu = ({ dense = false }) => {
         {Object.keys(albumLists).map((type) =>
           renderAlbumMenuItemLink(type, albumLists[type]),
         )}
+        {config.enableStarRating && (
+          <MenuItemLink
+            to="/top-rated"
+            activeClassName={classes.active}
+            primaryText={translate('resources.album.lists.topRated', { _: 'Top Rated' })}
+            leftIcon={<StarIcon />}
+            sidebarIsOpen={open}
+            dense={dense}
+            exact
+          />
+        )}
+        <MenuItemLink
+          to="/recently-added"
+          activeClassName={classes.active}
+          primaryText={translate('resources.album.lists.recentlyAdded', { _: 'Recently Added' })}
+          leftIcon={<LibraryAddIcon />}
+          sidebarIsOpen={open}
+          dense={dense}
+          exact
+        />
+        <MenuItemLink
+          to="/recently-played"
+          activeClassName={classes.active}
+          primaryText={translate('resources.album.lists.recentlyPlayed', { _: 'Recently Played' })}
+          leftIcon={<VideoLibraryIcon />}
+          sidebarIsOpen={open}
+          dense={dense}
+          exact
+        />
+        <MenuItemLink
+          to="/most-played"
+          activeClassName={classes.active}
+          primaryText={translate('resources.album.lists.mostPlayed', { _: 'Most Played' })}
+          leftIcon={<RepeatIcon />}
+          sidebarIsOpen={open}
+          dense={dense}
+          exact
+        />
       </SubMenu>
+      {config.enableFavourites && (
+        <MenuItemLink
+          to="/favourites"
+          activeClassName={classes.active}
+          primaryText="Favourites"
+          leftIcon={<FavoriteIcon />}
+          sidebarIsOpen={open}
+          dense={dense}
+          exact
+        />
+      )}
       {resources.filter(subItems(undefined)).map(renderResourceMenuItemLink)}
       {config.devSidebarPlaylists && open ? (
         <>
@@ -149,6 +207,44 @@ const Menu = ({ dense = false }) => {
       ) : (
         resources.filter(subItems('playlist')).map(renderResourceMenuItemLink)
       )}
+      {open && <Divider style={{ margin: '8px 0' }} />}
+      <MenuItemLink
+        to="/stats"
+        activeClassName={classes.active}
+        primaryText="Stats"
+        leftIcon={<BarChartIcon />}
+        sidebarIsOpen={open}
+        dense={dense}
+        exact
+      />
+      <MenuItemLink
+        to="/smart-playlists"
+        activeClassName={classes.active}
+        primaryText="Smart Playlists"
+        leftIcon={<AutorenewIcon />}
+        sidebarIsOpen={open}
+        dense={dense}
+        exact
+      />
+      <MenuItemLink
+        to="/offline"
+        activeClassName={classes.active}
+        primaryText="Offline Queue"
+        leftIcon={<CloudQueueIcon />}
+        sidebarIsOpen={open}
+        dense={dense}
+        exact
+      />
+      {open && <Divider style={{ margin: '8px 0' }} />}
+      <MenuItemLink
+        to="/appearance"
+        activeClassName={classes.active}
+        primaryText="Appearance"
+        leftIcon={<PaletteIcon />}
+        sidebarIsOpen={open}
+        dense={dense}
+        exact
+      />
     </div>
   )
 }

@@ -65,7 +65,6 @@ const mapToAudioLists = (item) => {
           time = Math.floor(time / 60)
           const min = time % 60
 
-          ms.toString()
           lyricText += `[${pad(min)}:${pad(sec)}.${pad(ms)}] ${line.value}\n`
         }
       }
@@ -92,7 +91,13 @@ const mapToAudioLists = (item) => {
   }
 }
 
-const reduceClearQueue = () => ({ ...initialState, clear: true })
+const reduceClearQueue = (state) => ({
+  ...initialState,
+  clear: true,
+  volume: state.volume,
+  crossfadeDuration: state.crossfadeDuration,
+  mode: state.mode,
+})
 
 const reducePlayTracks = (state, { data, id }) => {
   let playIndex = 0
@@ -120,7 +125,7 @@ const reduceSetTrack = (state, { data }) => {
 }
 
 const reduceAddTracks = (state, { data }) => {
-  const queue = state.queue
+  const queue = [...state.queue]
   Object.keys(data).forEach((id) => {
     queue.push(mapToAudioLists(data[id]))
   })
@@ -202,7 +207,7 @@ export const playerReducer = (previousState = initialState, payload) => {
   const { type } = payload
   switch (type) {
     case PLAYER_CLEAR_QUEUE:
-      return reduceClearQueue()
+      return reduceClearQueue(previousState)
     case PLAYER_PLAY_TRACKS:
       return reducePlayTracks(previousState, payload)
     case PLAYER_SET_TRACK:
