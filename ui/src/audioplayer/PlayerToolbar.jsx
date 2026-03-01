@@ -5,6 +5,7 @@ import { GlobalHotKeys } from 'react-hotkeys'
 import IconButton from '@material-ui/core/IconButton'
 import { useMediaQuery } from '@material-ui/core'
 import { RiSaveLine } from 'react-icons/ri'
+import QueueMusicIcon from '@material-ui/icons/QueueMusic'
 import { LoveButton, useToggleLove } from '../common'
 import { openSaveQueueDialog } from '../actions'
 import { keyMap } from '../hotkeys'
@@ -55,7 +56,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-const PlayerToolbar = ({ id, isRadio }) => {
+const PlayerToolbar = ({ id, isRadio, onToggleQueue }) => {
   const dispatch = useDispatch()
   const { data, loading } = useGetOne('song', id, { enabled: !!id && !isRadio })
   const [toggleLove, toggling] = useToggleLove('song', data)
@@ -77,6 +78,14 @@ const PlayerToolbar = ({ id, isRadio }) => {
   const buttonClass = isDesktop ? classes.button : classes.mobileButton
   const listItemClass = isDesktop ? classes.toolbar : classes.mobileListItem
 
+  const handleToggleQueue = useCallback(
+    (e) => {
+      e.stopPropagation()
+      onToggleQueue && onToggleQueue()
+    },
+    [onToggleQueue],
+  )
+
   const saveQueueButton = (
     <IconButton
       size={isDesktop ? 'small' : undefined}
@@ -86,6 +95,20 @@ const PlayerToolbar = ({ id, isRadio }) => {
       className={buttonClass}
     >
       <RiSaveLine className={!isDesktop ? classes.mobileIcon : undefined} />
+    </IconButton>
+  )
+
+  const queuePanelButton = (
+    <IconButton
+      size={isDesktop ? 'small' : undefined}
+      onClick={handleToggleQueue}
+      className={buttonClass}
+      data-testid="queue-panel-button"
+    >
+      <QueueMusicIcon
+        className={!isDesktop ? classes.mobileIcon : undefined}
+        fontSize={isDesktop ? 'default' : undefined}
+      />
     </IconButton>
   )
 
@@ -104,11 +127,13 @@ const PlayerToolbar = ({ id, isRadio }) => {
       <GlobalHotKeys keyMap={keyMap} handlers={handlers} allowChanges />
       {isDesktop ? (
         <li className={`${listItemClass} item`}>
+          {queuePanelButton}
           {saveQueueButton}
           {loveButton}
         </li>
       ) : (
         <>
+          <li className={`${listItemClass} item`}>{queuePanelButton}</li>
           <li className={`${listItemClass} item`}>{saveQueueButton}</li>
           <li className={`${listItemClass} item`}>{loveButton}</li>
         </>

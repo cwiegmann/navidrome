@@ -10,8 +10,11 @@ import {
   PLAYER_SET_VOLUME,
   PLAYER_SYNC_QUEUE,
   PLAYER_SET_MODE,
+  PLAYER_SET_CROSSFADE,
 } from '../actions'
 import config from '../config'
+
+const savedCrossfade = parseFloat(localStorage.getItem('crossfadeDuration')) || 0
 
 const initialState = {
   queue: [],
@@ -19,6 +22,7 @@ const initialState = {
   clear: false,
   volume: config.defaultUIVolume / 100,
   savedPlayIndex: 0,
+  crossfadeDuration: savedCrossfade,
 }
 
 const pad = (value) => {
@@ -186,6 +190,14 @@ const reduceMode = (state, { data: { mode } }) => {
   }
 }
 
+const reduceCrossfade = (state, { data: { crossfadeDuration } }) => {
+  localStorage.setItem('crossfadeDuration', crossfadeDuration)
+  return {
+    ...state,
+    crossfadeDuration,
+  }
+}
+
 export const playerReducer = (previousState = initialState, payload) => {
   const { type } = payload
   switch (type) {
@@ -207,6 +219,8 @@ export const playerReducer = (previousState = initialState, payload) => {
       return reduceCurrent(previousState, payload)
     case PLAYER_SET_MODE:
       return reduceMode(previousState, payload)
+    case PLAYER_SET_CROSSFADE:
+      return reduceCrossfade(previousState, payload)
     default:
       return previousState
   }

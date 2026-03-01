@@ -24,6 +24,8 @@ import {
   syncQueue,
 } from '../actions'
 import PlayerToolbar from './PlayerToolbar'
+import QueuePanel from './QueuePanel'
+import crossfadeManager from './CrossfadeManager'
 import { sendNotification } from '../utils'
 import subsonic from '../subsonic'
 import locale from './locale'
@@ -42,6 +44,7 @@ const Player = () => {
   const [scrobbled, setScrobbled] = useState(false)
   const [preloaded, setPreload] = useState(false)
   const [audioInstance, setAudioInstance] = useState(null)
+  const [queuePanelOpen, setQueuePanelOpen] = useState(false)
   const isDesktop = useMediaQuery('(min-width:810px)')
   const isMobilePlayer =
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
@@ -154,7 +157,11 @@ const Player = () => {
       autoPlay: playerState.clear || playerState.playIndex === 0,
       clearPriorAudioLists: playerState.clear,
       extendsContent: (
-        <PlayerToolbar id={current.trackId} isRadio={current.isRadio} />
+        <PlayerToolbar
+          id={current.trackId}
+          isRadio={current.isRadio}
+          onToggleQueue={() => setQueuePanelOpen((prev) => !prev)}
+        />
       ),
       defaultVolume: isMobilePlayer ? 1 : playerState.volume,
       showMediaSession: !current.isRadio,
@@ -172,6 +179,10 @@ const Player = () => {
     )
     return idx !== null ? playerState.queue[idx + 1] : null
   }, [playerState])
+
+  useEffect(() => {
+    crossfadeManager.setDuration(playerState.crossfadeDuration || 0)
+  }, [playerState.crossfadeDuration])
 
   const onAudioProgress = useCallback(
     (info) => {
@@ -198,12 +209,22 @@ const Player = () => {
         return
       }
 
+      if (
+        crossfadeManager.isEnabled() &&
+        crossfadeManager.shouldStartCrossfade(info.currentTime, info.duration)
+      ) {
+        const next = nextSong()
+        if (next) {
+          crossfadeManager.startCrossfade(gainNode, context, next.musicSrc)
+        }
+      }
+
       if (!scrobbled) {
         info.trackId && subsonic.scrobble(info.trackId, startTime)
         setScrobbled(true)
       }
     },
-    [startTime, scrobbled, nextSong, preloaded],
+    [startTime, scrobbled, nextSong, preloaded, gainNode, context],
   )
 
   const onAudioVolumeChange = useCallback(
@@ -252,13 +273,14 @@ const Player = () => {
   )
 
   const onAudioPlayTrackChange = useCallback(() => {
+    crossfadeManager.resetForNewTrack(gainNode, context)
     if (scrobbled) {
       setScrobbled(false)
     }
     if (startTime !== null) {
       setStartTime(null)
     }
-  }, [scrobbled, startTime])
+  }, [scrobbled, startTime, gainNode, context])
 
   const onAudioPause = useCallback(
     (info) => dispatch(currentPlaying(info)),
@@ -322,6 +344,10 @@ const Player = () => {
         onCoverClick={onCoverClick}
         onBeforeDestroy={onBeforeDestroy}
         getAudioInstance={setAudioInstance}
+      />
+      <QueuePanel
+        open={queuePanelOpen}
+        onClose={() => setQueuePanelOpen(false)}
       />
       <GlobalHotKeys handlers={handlers} keyMap={keyMap} allowChanges />
     </ThemeProvider>

@@ -11,6 +11,11 @@ const keyMap = {
   ...(config.enableFavourites && {
     TOGGLE_LOVE: { name: 'toggle_love', sequence: 'l', group: 'Player' },
   }),
+  QUICK_SEARCH: {
+    name: 'quick_search',
+    sequences: ['command+k', 'ctrl+k'],
+    group: 'Global',
+  },
 }
 
 export { keyMap }

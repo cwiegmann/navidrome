@@ -9,6 +9,7 @@ import { LastfmScrobbleToggle } from './LastfmScrobbleToggle'
 import { ListenBrainzScrobbleToggle } from './ListenBrainzScrobbleToggle'
 import config from '../config'
 import { ReplayGainToggle } from './ReplayGainToggle'
+import CrossfadeSlider from './CrossfadeSlider'
 
 const useStyles = makeStyles({
   root: { marginTop: '1em' },
@@ -26,6 +27,7 @@ const Personal = () => {
         <SelectLanguage />
         <SelectDefaultView />
         {config.enableReplayGain && <ReplayGainToggle />}
+        <CrossfadeSlider />
         <NotificationsToggle />
         {config.lastFMEnabled && <LastfmScrobbleToggle />}
         {config.listenBrainzEnabled && <ListenBrainzScrobbleToggle />}

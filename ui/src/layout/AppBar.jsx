@@ -15,6 +15,7 @@ import { AboutDialog } from '../dialogs'
 import PersonalMenu from './PersonalMenu'
 import ActivityPanel from './ActivityPanel'
 import NowPlayingPanel from './NowPlayingPanel'
+import NavigationButtons from './NavigationButtons'
 import UserMenu from './UserMenu'
 import config from '../config'
 
@@ -140,7 +141,10 @@ const CustomUserMenu = ({ onClick, ...rest }) => {
 }
 
 const AppBar = (props) => (
-  <RAAppBar {...props} container={Fragment} userMenu={<CustomUserMenu />} />
+  <RAAppBar {...props} container={Fragment} userMenu={<CustomUserMenu />}>
+    <NavigationButtons />
+    <span style={{ flex: 1 }} />
+  </RAAppBar>
 )
 
 export default AppBar
