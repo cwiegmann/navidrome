@@ -42,7 +42,10 @@ func createGetPID(hash hashFunc) getPIDFunc {
 		case "title":
 			return mf.Title
 		case "album":
-			return str.Clear(strings.ToLower(md.String(model.TagAlbum)))
+			if v := str.Clear(strings.ToLower(md.String(model.TagAlbum))); v != "" {
+				return v
+			}
+			return str.Clear(strings.ToLower(mf.Album))
 		}
 		return md.String(model.TagName(attr))
 	}
